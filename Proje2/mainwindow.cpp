@@ -9,6 +9,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    QImage logo("./gtuLogo500.png");
+    ui->gtuLogo->setPixmap(QPixmap::fromImage(logo.scaled(201,111)));
+
     vid = new cv::VideoCapture(0);
     setWindowTitle(tr("Proje 2"));
     isRunning = false;
