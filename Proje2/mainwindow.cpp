@@ -2,6 +2,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <iostream>
+#include <QTcpSocket>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -37,6 +39,7 @@ void MainWindow::start()
         StartTime = QDateTime::currentDateTime();
         isRunning = true;
     }
+/*  TODO: Network
     else{
         QString ip =  ui->ipText->text();
         QString port = ui->PortText->text();
@@ -46,6 +49,7 @@ void MainWindow::start()
         socket->connectToHost(ip,port.toInt());
         socket->waitForConnected();
     }
+    */
 }
 
 void MainWindow::stop()
@@ -56,7 +60,8 @@ void MainWindow::stop()
 void MainWindow::UpdateFrame()
 {
     if(isRunning){
-/*        QImage image;
+/* TODO: Network
+        QImage image;
         QPixmap pixmap;
         if(isDataReady){
             img = QImage.fromData(dataTcp,QImage::Format_RGB888);
@@ -100,6 +105,6 @@ void MainWindow::stopWatch()
         else
            diff = QString("%1:%2:%3:%4").arg(h).arg(m).arg(s).arg(ms);
         ui->stopWatch->setText(diff);
-        socket->close();
+        //TODO: Network socket->close();
     }
 }

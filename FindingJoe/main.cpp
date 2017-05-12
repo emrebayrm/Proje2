@@ -5,20 +5,66 @@
 #include <vector>
 #include <sstream>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <time.h>
+#include <pthread.h>
+
 using namespace cv;
 using namespace std;
 
-int regionPixelCounting(Mat image, int firstBegin, int firstEnd, int secondBegin, int secondEnd);
-void detectStickMan(Mat clippedStickMan);
-void showOrientation(int firstRegion, int secondRegion, int thirdRegion, int fourthRegion);
-
-double angleResult;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 Mat frame;
+double angleResult;
 Mat binary;
 Mat coloredBinary;
 Mat clippedStickMan;
 RotatedRect angleContour;
 Rect stickmanContour;
+
+int regionPixelCounting(Mat image, int firstBegin, int firstEnd, int secondBegin, int secondEnd);
+void detectStickMan(Mat clippedStickMan);
+void showOrientation(int firstRegion, int secondRegion, int thirdRegion, int fourthRegion);
+void *setupNetwork(void *){
+    int listenfd = 0, connfd = 0;
+    struct sockaddr_in serv_addr;
+
+    char sendBuff[1025];
+    time_t ticks;
+
+    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&serv_addr, '0', sizeof(serv_addr));
+    memset(sendBuff, '0', sizeof(sendBuff));
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_port = htons(5000);
+
+    bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+
+    listen(listenfd, 10);
+
+    connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+    int dataSize;
+    Mat willSend;
+
+    while(1)
+    {
+        pthread_mutex_lock(&mutex);
+            frame.copyTo(willSend);
+        pthread_mutex_unlock(&mutex);
+        dataSize = frame.rows * frame.cols;
+        write(connfd,&dataSize,sizeof(int));
+        write(connfd,(char *)willSend.data,dataSize);
+        }
+}
 
 int main(void) {
     VideoCapture video(1);
@@ -76,6 +122,7 @@ int main(void) {
 
         putText(coloredBinary,oss.str(), Point(stickmanContour.x+stickmanContour.width,
                                                stickmanContour.y+stickmanContour.height),CV_FONT_HERSHEY_SIMPLEX,1.0,Scalar(0,0,255));
+
         imshow("Original",coloredBinary);
         imshow("Frame",frame);
         waitKey(10);
