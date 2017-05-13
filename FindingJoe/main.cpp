@@ -45,29 +45,42 @@ void *setupNetwork(void *){
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(5000);
+    serv_addr.sin_port = htons(14144);
 
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
     listen(listenfd, 10);
-
+    cerr << "Waiting" << endl;
     connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+    cerr << "Connection started" << endl;
     int dataSize;
     Mat willSend;
-
+    dataSize = frame.rows * frame.cols;
+    cerr << dataSize ;
+    write(connfd,&dataSize,sizeof(int));
+    char dead;
+    int ret=1;
     while(1)
     {
-        pthread_mutex_lock(&mutex);
-            frame.copyTo(willSend);
-        pthread_mutex_unlock(&mutex);
-        dataSize = frame.rows * frame.cols;
-        write(connfd,&dataSize,sizeof(int));
-        write(connfd,(char *)willSend.data,dataSize);
+        if(ret > 0) {
+            pthread_mutex_lock(&mutex);
+                frame.copyTo(willSend);
+            pthread_mutex_unlock(&mutex);
+
+            cerr << "Write :" << send(connfd,willSend.data,dataSize,0);
+            ret = read(connfd, &dead, sizeof(int));
+            cerr << "Next Data";
+            sleep(1);
         }
+        else{
+            connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+            write(connfd,&dataSize,sizeof(int));
+        }
+    }
 }
 
 int main(void) {
-    VideoCapture video(1);
+    VideoCapture video(0);
 
     // Set capture device properties
 //    video.set(CV_CAP_PROP_FRAME_WIDTH, 640);
@@ -78,14 +91,17 @@ int main(void) {
         printf("Failed to open a video device or video file!\n");
         return 1;
     }
+    pthread_t id;
+   // pthread_create(&id,NULL,setupNetwork,NULL);
 
     while (true) {
+        pthread_mutex_lock(&mutex);
         video >> frame;
 
         GaussianBlur(frame,frame,Size(3,3),2);
         Canny(frame,binary,50,200,3);
         dilate(binary,binary,getStructuringElement(MORPH_RECT,Size(5,5)));
-
+       // cerr << frame.rows << "   " << frame.cols << endl;
         vector<vector<Point>> contours;
         findContours(binary,contours,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
 
@@ -122,7 +138,7 @@ int main(void) {
 
         putText(coloredBinary,oss.str(), Point(stickmanContour.x+stickmanContour.width,
                                                stickmanContour.y+stickmanContour.height),CV_FONT_HERSHEY_SIMPLEX,1.0,Scalar(0,0,255));
-
+        pthread_mutex_unlock(&mutex);
         imshow("Original",coloredBinary);
         imshow("Frame",frame);
         waitKey(10);

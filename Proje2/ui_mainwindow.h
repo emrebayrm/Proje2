@@ -120,8 +120,10 @@ public:
         labelCamera->setText(QApplication::translate("MainWindow", "Camera", Q_NULLPTR));
         Connect->setText(QApplication::translate("MainWindow", "Connect", Q_NULLPTR));
         stop->setText(QApplication::translate("MainWindow", "Stop", Q_NULLPTR));
-        labelMessageBox->setText(QApplication::translate("MainWindow", "Messages' from Raspberry ", Q_NULLPTR));
+        labelMessageBox->setText(QApplication::translate("MainWindow", "Messages' ", Q_NULLPTR));
         stopWatch->setText(QApplication::translate("MainWindow", "0:0:0:0", Q_NULLPTR));
+        ipText->setText(QApplication::translate("MainWindow", "192.168.1.33", Q_NULLPTR));
+        PortText->setText(QApplication::translate("MainWindow", "14144", Q_NULLPTR));
         label->setText(QApplication::translate("MainWindow", "IP  :", Q_NULLPTR));
         labelPort->setText(QApplication::translate("MainWindow", "Port    :", Q_NULLPTR));
         gtuLogo->setText(QString());

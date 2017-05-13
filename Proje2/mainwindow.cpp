@@ -13,17 +13,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QImage logo("./gtuLogo500.png");
     ui->gtuLogo->setPixmap(QPixmap::fromImage(logo.scaled(201,111)));
 
-    vid = new cv::VideoCapture(0);
+//    vid = new cv::VideoCapture(0);
     setWindowTitle(tr("Proje 2"));
     isRunning = false;
     QTimer *timer = new QTimer(this);
-    QTimer *videoTimer = new QTimer(this);
 
     connect(timer, SIGNAL(timeout()), this, SLOT(stopWatch()));
     timer->start(1);
-
-    connect(videoTimer, SIGNAL(timeout()),this,SLOT(UpdateFrame()));
-    videoTimer->start(1);
 
     connect( ui->Connect, SIGNAL( clicked() ), this, SLOT( start() ) );
     connect( ui->stop, SIGNAL( clicked() ), this, SLOT( stop() ) );
@@ -39,43 +35,55 @@ MainWindow::~MainWindow()
 void MainWindow::start()
 {
     if(!isRunning){
-        statusBar()->showMessage("message");
         StartTime = QDateTime::currentDateTime();
         isRunning = true;
-    }
-/*  TODO: Network
-    else{
         QString ip =  ui->ipText->text();
         QString port = ui->PortText->text();
+        ui->MessageBox->append("Connecting ...");
+        ui->MessageBox->append("Ip : " + ip);
+        ui->MessageBox->append("Port number " + port);
+
         socket = new QTcpSocket(this);
+
         connect(socket,SIGNAL(readyRead()),this,SLOT(ReadTcpData()));
 
         socket->connectToHost(ip,port.toInt());
         socket->waitForConnected();
+        if(socket->state() == socket->ConnectedState)
+            ui->MessageBox->append("Connected ");
     }
-    */
+
 }
 
 void MainWindow::stop()
 {
     isRunning = false;
+    socket->close();
 }
 
-void MainWindow::UpdateFrame()
+
+void MainWindow::ReadTcpData()
 {
-    if(isRunning){
-/* TODO: Network
-        QImage image;
-        QPixmap pixmap;
-        if(isDataReady){
-            img = QImage.fromData(dataTcp,QImage::Format_RGB888);
-            isDataReady = false;
-        }
-*/
-        cv::Mat frame;
-        (*vid) >> frame;
-        cv::cvtColor(frame,frame,CV_BGR2RGB);
+    qint64 ret;
+    if(dataSize == 0){
+        socket->read((char *)&dataSize,sizeof(int));
+        std::cerr << dataSize;
+        dataTcp= new uchar[dataSize];
+    }
+    std::cerr <<"Readed :: " << (int)(ret = socket->read((char *)dataTcp,dataSize)) << std::endl;
+    char dead = 'N';
+    socket->write((char *)&dead);
+    if(ret == dataSize){
+        cv::Mat frame(540,960,CV_8U,dataTcp);
+        cv::imshow("asd",frame);
         QImage image(frame.data,frame.cols,frame.rows,frame.step,QImage::Format_RGB888);
+        //image = QImage::fromData(dataTcp,QImage::Format_BGR30);
+
+    /*        cv::Mat frame;
+    (*vid) >> frame;
+    cv::cvtColor(frame,frame,CV_BGR2RGB);
+    QImage image(frame.data,frame.cols,frame.rows,frame.step,QImage::Format_RGB888);
+    */
         image.scaledToHeight(480);
         image.scaledToWidth(640);
 
@@ -85,12 +93,6 @@ void MainWindow::UpdateFrame()
         scene->setSceneRect(pixmap.rect());
         ui->Camera->setScene(scene);
     }
-}
-
-void MainWindow::ReadTcpData()
-{
-    dataTcp = socket->readAll();
-    isDataReady = true;
 }
 
 void MainWindow::stopWatch()
@@ -109,6 +111,6 @@ void MainWindow::stopWatch()
         else
            diff = QString("%1:%2:%3:%4").arg(h).arg(m).arg(s).arg(ms);
         ui->stopWatch->setText(diff);
-        //TODO: Network socket->close();
+        //TODO: Network
     }
 }

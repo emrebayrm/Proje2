@@ -24,13 +24,13 @@ public slots:
     void stopWatch();
     void start();
     void stop();
-    void UpdateFrame();
     void ReadTcpData();
 
 private:
-    QByteArray dataTcp;
+    int dataSize = 0;
+    uchar* dataTcp;
     cv::VideoCapture *vid;
-    bool isDataReady;
+    bool isDataReady =false;
     QTcpSocket *socket;
     Ui::MainWindow *ui;
     bool isRunning;

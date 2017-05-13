@@ -85,7 +85,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Messages' from Raspberry </string>
+     <string>Messages' </string>
     </property>
    </widget>
    <widget class="QLabel" name="stopWatch">
@@ -141,6 +141,9 @@
       <height>22</height>
      </rect>
     </property>
+    <property name="text">
+     <string>192.168.1.33</string>
+    </property>
    </widget>
    <widget class="QLineEdit" name="PortText">
     <property name="geometry">
@@ -150,6 +153,9 @@
       <width>113</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>14144</string>
     </property>
    </widget>
    <widget class="QLabel" name="label">
