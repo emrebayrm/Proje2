@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(OpenCV_FOUND 1)
 
 find_package( OpenCV REQUIRED )
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp GPIO_Controller.cpp GPIO_Controller.h StepMotor.cpp StepMotor.h)
 link_libraries(-pthread)
 
 

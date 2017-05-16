@@ -4,7 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <sstream>
-
+#include "StepMotor.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -28,7 +28,9 @@ Mat coloredBinary;
 Mat clippedStickMan;
 RotatedRect angleContour;
 Rect stickmanContour;
+bool firstWhite = false;
 
+void *motorMovement(void *);
 int regionPixelCounting(Mat image, int firstBegin, int firstEnd, int secondBegin, int secondEnd);
 void detectStickMan(Mat clippedStickMan);
 void showOrientation(int firstRegion, int secondRegion, int thirdRegion, int fourthRegion);
@@ -91,9 +93,11 @@ int main(void) {
         printf("Failed to open a video device or video file!\n");
         return 1;
     }
-    pthread_t id;
-   // pthread_create(&id,NULL,setupNetwork,NULL);
 
+    pthread_t id;
+    pthread_t motorThid;
+   //pthread_create(&id,NULL,setupNetwork,NULL);
+    pthread_create(&motorThid,NULL,motorMovement,NULL);
     while (true) {
         pthread_mutex_lock(&mutex);
         video >> frame;
@@ -106,7 +110,18 @@ int main(void) {
         findContours(binary,contours,RETR_EXTERNAL,CHAIN_APPROX_SIMPLE);
 
         cvtColor(binary,coloredBinary,COLOR_GRAY2BGR);
+        if(!firstWhite) {
+            for (int  i = 0; i < coloredBinary.rows; ++i) {
+                for(int j = 0; j < coloredBinary.cols; ++j){
+                        Vec3b a =  coloredBinary.at<Vec3b>(Point(j,i));
+                        if(a.val[0] == 255 && a.val[1] == 255 && a.val[2] == 255 )
+                        {
+                            firstWhite = true;
+                        }
 
+                }
+            }
+        }
         /// Find the rotated rectangles
         vector<RotatedRect> minRect(contours.size());
 
@@ -192,4 +207,33 @@ void showOrientation(int firstRegion, int secondRegion, int thirdRegion, int fou
     } else if (maxIndex == 3) {
         angleResult = angleContour.angle - 270;
     }
+}
+
+void *motorMovement(void *){
+    int ustEnablePin = 16;
+    int ustStepPin = 20;
+    int ustDirPin = 21;
+    int altEnablePin = 13;
+    int altStepPin = 19;
+    int altDirPin = 26;
+    int i,j;
+    StepMotor ustMotor(ustEnablePin,ustStepPin,ustDirPin);
+    StepMotor altMotor(altEnablePin,altStepPin,altDirPin);
+
+    bool direcMotor1= false;
+    for(j = 0; j < 5; ++j){
+        for(i = 0; i < 400;i++){
+            if(firstWhite){
+                break;
+            }
+            ustMotor.GoStep(1,direcMotor1);
+        }
+        if(firstWhite){
+            break;
+        }
+        direcMotor1 = direcMotor1 ? false : true;
+        altMotor.GoStep(175,false);
+    }
+
+
 }
