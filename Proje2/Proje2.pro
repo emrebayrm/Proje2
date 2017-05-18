@@ -24,9 +24,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp\
+    framestreamerthread.cpp
 
-HEADERS  += mainwindow.h
+
+HEADERS  += mainwindow.h \
+    framestreamerthread.h
 
 FORMS    += mainwindow.ui
 

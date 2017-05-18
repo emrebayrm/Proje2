@@ -7,6 +7,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <QtNetwork/QTcpSocket>
+#include "framestreamerthread.h"
+
 
 namespace Ui {
 class MainWindow;
@@ -24,18 +26,15 @@ public slots:
     void stopWatch();
     void start();
     void stop();
-    void ReadTcpData();
-
+    void updateFrame(cv::Mat frame);
 private:
-    int dataSize = 0;
-    uchar* dataTcp;
-    cv::VideoCapture *vid;
     bool isDataReady =false;
-    QTcpSocket *socket;
-    Ui::MainWindow *ui;
     bool isRunning;
+    FrameStreamerWorker *frameStreamerWorker;
+    Ui::MainWindow *ui;
     QDateTime StartTime;
-
+    cv::VideoCapture *vid;
+    QGraphicsScene *scene;
 };
 
 

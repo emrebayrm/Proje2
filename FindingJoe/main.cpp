@@ -29,79 +29,77 @@ Mat clippedStickMan;
 RotatedRect angleContour;
 Rect stickmanContour;
 bool firstWhite = false;
+char ACKNOWLEDGE[2];
+
+/* ------------ FRAME STREAMER VARIABLES ------------ */
+int mainSocket;
+int dataSocket;
+int dataSizeSocket;
+struct sockaddr_in serverAddr;
+int iSockOpt = 1;
+/* -------------------------------------------------- */
+
 
 void *motorMovement(void *);
 int regionPixelCounting(Mat image, int firstBegin, int firstEnd, int secondBegin, int secondEnd);
 void detectStickMan(Mat clippedStickMan);
 void showOrientation(int firstRegion, int secondRegion, int thirdRegion, int fourthRegion);
-void *setupNetwork(void *){
-    int listenfd = 0, connfd = 0;
-    struct sockaddr_in serv_addr;
+void setupNetwork();
 
-    char sendBuff[1025];
-    time_t ticks;
+void *frameStreamerTask(void *){
+    dataSocket = accept(mainSocket,(struct sockaddr *)NULL, NULL);
+    dataSizeSocket = accept(mainSocket,(struct sockaddr *)NULL, NULL);
 
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    memset(&serv_addr, '0', sizeof(serv_addr));
-    memset(sendBuff, '0', sizeof(sendBuff));
-
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(14144);
-
-    bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-
-    listen(listenfd, 10);
-    cerr << "Waiting" << endl;
-    connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
-    cerr << "Connection started" << endl;
-    int dataSize;
-    Mat willSend;
-    dataSize = frame.rows * frame.cols;
-    cerr << dataSize ;
-    write(connfd,&dataSize,sizeof(int));
-    char dead;
-    int ret=1;
     while(1)
     {
-        if(ret > 0) {
-            pthread_mutex_lock(&mutex);
-                frame.copyTo(willSend);
-            pthread_mutex_unlock(&mutex);
+        ostringstream dataSizeStr;
 
-            cerr << "Write :" << send(connfd,willSend.data,dataSize,0);
-            ret = read(connfd, &dead, sizeof(int));
-            cerr << "Next Data";
-            sleep(1);
+        vector<uchar> encodedImage;
+        vector<int> compressionParams;
+        compressionParams.push_back((int &&) CV_IMWRITE_JPEG_QUALITY);
+        compressionParams.push_back(50);
+        imencode(".jpg",frame,encodedImage,compressionParams);
+
+        dataSizeStr << encodedImage.size();
+
+        const char *dataSize = dataSizeStr.str().c_str();
+
+        send(dataSizeSocket,dataSize,strlen(dataSize),0);
+        recv(dataSizeSocket,ACKNOWLEDGE,sizeof(ACKNOWLEDGE),0);
+        /* ---------------------------------------------------- */
+
+        char *data = new char[encodedImage.size()];
+
+        for (int i = 0; i < encodedImage.size(); ++i) {
+            data[i] = encodedImage.at(i);
         }
-        else{
-            connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
-            write(connfd,&dataSize,sizeof(int));
+
+        int sendedBytes = 0;
+        int receivedBytes;
+        for (int i = 0; i < encodedImage.size(); i += sendedBytes) {
+            sendedBytes = send(dataSocket, data + i, encodedImage.size() - i, 0);
+           cout << "Sended bytes: " << sendedBytes << endl;
+            receivedBytes = recv(dataSocket, ACKNOWLEDGE, 2,0);
+           cout << "Received bytes: " << receivedBytes << endl;
         }
     }
 }
 
 int main(void) {
     VideoCapture video(0);
-
-    // Set capture device properties
-//    video.set(CV_CAP_PROP_FRAME_WIDTH, 640);
-//    video.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
-
-    // check for failure
     if (!video.isOpened()) {
         printf("Failed to open a video device or video file!\n");
         return 1;
     }
 
+    setupNetwork();
     pthread_t id;
     pthread_t motorThid;
-   //pthread_create(&id,NULL,setupNetwork,NULL);
-    pthread_create(&motorThid,NULL,motorMovement,NULL);
+    pthread_create(&id,NULL,frameStreamerTask,NULL);
+//    pthread_create(&motorThid,NULL,motorMovement,NULL);
     while (true) {
-        pthread_mutex_lock(&mutex);
         video >> frame;
-
+        cvtColor(frame,frame,CV_BGR2RGB);
         GaussianBlur(frame,frame,Size(3,3),2);
         Canny(frame,binary,50,200,3);
         dilate(binary,binary,getStructuringElement(MORPH_RECT,Size(5,5)));
@@ -137,10 +135,10 @@ int main(void) {
             angleContour = minRect[i];
 
             for(int j = 0; j < 4; j++ ) {
-                line(coloredBinary, rect_points[j], rect_points[(j + 1) % 4], Scalar(0, 0, 255), 1, 8);
+                line(frame, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0), 2, LINE_AA);
             }
 
-            rectangle(coloredBinary,stickmanContour,Scalar(0,255,0));
+            rectangle(frame,stickmanContour,Scalar(0,255,0),2);
             clippedStickMan = binary(Rect(stickmanContour.x,stickmanContour.y,stickmanContour.width,stickmanContour.height));
         }
 
@@ -151,11 +149,11 @@ int main(void) {
         ostringstream oss;
         oss << angleResult;
 
-        putText(coloredBinary,oss.str(), Point(stickmanContour.x+stickmanContour.width,
-                                               stickmanContour.y+stickmanContour.height),CV_FONT_HERSHEY_SIMPLEX,1.0,Scalar(0,0,255));
-        pthread_mutex_unlock(&mutex);
-        imshow("Original",coloredBinary);
+        putText(frame,oss.str(), Point(stickmanContour.x+stickmanContour.width,
+                                               stickmanContour.y+stickmanContour.height),CV_FONT_HERSHEY_SIMPLEX,1.0,Scalar(0,255,0),2);
+
         imshow("Frame",frame);
+        imshow("Colored",coloredBinary);
         waitKey(10);
     }
 }
@@ -235,5 +233,32 @@ void *motorMovement(void *){
         altMotor.GoStep(175,false);
     }
 
+}
 
+void setupNetwork() {
+    string ip;
+    int port = 14144;
+    if ((mainSocket = socket(AF_INET,SOCK_STREAM,0)) == -1) {
+        cout << "Could not create socket" << endl;
+        exit(1);
+    }
+
+    if (setsockopt(mainSocket,SOL_SOCKET,SO_REUSEADDR,&iSockOpt,sizeof(int)) == -1) {
+        cout << "Socket options can't be applied!" << endl;
+        exit(1);
+    }
+
+    serverAddr.sin_addr.s_addr = (INADDR_ANY);
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+
+    if (bind(mainSocket,(struct sockaddr *)&serverAddr,sizeof(serverAddr))) {
+        cout << "Socket can't be binded" << endl;
+        exit(1);
+    }
+
+    if (listen(mainSocket,10) == -1) {
+        cout << "Socket can't be listened" << endl;
+        exit(1);
+    }
 }
