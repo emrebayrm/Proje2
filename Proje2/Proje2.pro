@@ -25,11 +25,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp\
-    framestreamerthread.cpp
+    framestreamerthread.cpp \
+    stickmanlocation.cpp
 
 
 HEADERS  += mainwindow.h \
-    framestreamerthread.h
+    framestreamerthread.h \
+    stickmanlocation.h
 
 FORMS    += mainwindow.ui
 

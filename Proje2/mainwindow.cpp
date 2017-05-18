@@ -9,9 +9,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     QImage logo("./gtuLogo500.png");
+    QImage sagCetvel("./sagCetvel.png");
+    QImage solCetvel("./solCetvel.png");
     ui->gtuLogo->setPixmap(QPixmap::fromImage(logo.scaled(201,111)));
-
-//    vid = new cv::VideoCapture(0);
+    ui->sagCetvel->setPixmap(QPixmap::fromImage(sagCetvel.scaled(500,23)));
+    ui->solCetvel->setPixmap(QPixmap::fromImage(solCetvel.scaled(23,271)));
     setWindowTitle(tr("Proje 2"));
     isRunning = false;
     QTimer *timer = new QTimer(this);
@@ -44,8 +46,11 @@ void MainWindow::start()
         ui->MessageBox->append("Port number " + port);
 
         frameStreamerWorker = new FrameStreamerWorker(ip,port.toInt());
+        stickmanLocaterTh = new StickManLocation(ip,port.toInt());
         connect(frameStreamerWorker,SIGNAL(frameAcquired(cv::Mat)),this,SLOT(updateFrame(cv::Mat)),Qt::QueuedConnection);
+        connect(stickmanLocaterTh,SIGNAL(stickManAddressFounded(StickmanAddres_t)),this,SLOT(stickManFounded(StickmanAddres_t)),Qt::QueuedConnection);
         frameStreamerWorker->start();
+        stickmanLocaterTh->start();
     }
 
 }
@@ -71,13 +76,10 @@ void MainWindow::stopWatch()
         else
            diff = QString("%1:%2:%3:%4").arg(h).arg(m).arg(s).arg(ms);
         ui->stopWatch->setText(diff);
-        //TODO: Network
     }
 }
 
 void MainWindow::updateFrame(cv::Mat frame) {
-    std::cout << "Update " << std::endl;
-
     QImage image(frame.data,frame.cols,frame.rows,frame.step,QImage::Format_RGB888);
 
     image.scaledToHeight(480);
@@ -95,4 +97,8 @@ void MainWindow::updateFrame(cv::Mat frame) {
     scene->addPixmap(pixmap);
     scene->setSceneRect(pixmap.rect());
     ui->Camera->setScene(scene);
+}
+
+void MainWindow::stickManFounded(StickmanAddres_t addr){
+
 }

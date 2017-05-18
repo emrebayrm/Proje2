@@ -8,7 +8,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <QtNetwork/QTcpSocket>
 #include "framestreamerthread.h"
-
+#include "stickmanlocation.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,10 +27,12 @@ public slots:
     void start();
     void stop();
     void updateFrame(cv::Mat frame);
+    void stickManFounded(StickmanAddres_t addr);
 private:
     bool isDataReady =false;
     bool isRunning;
     FrameStreamerWorker *frameStreamerWorker;
+    StickManLocation *stickmanLocaterTh;
     Ui::MainWindow *ui;
     QDateTime StartTime;
     cv::VideoCapture *vid;

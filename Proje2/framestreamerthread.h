@@ -2,22 +2,12 @@
 #define FRAMESTREAMERTHREAD_H
 
 #include <QThread>
-#include <iostream>
-#include <vector>
 #include <opencv2/opencv.hpp>
 #include "ui_mainwindow.h"
-#include <ctime>
-#include <iostream>
-#include <cstdio>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <arpa/inet.h>
 #include <QApplication>
 

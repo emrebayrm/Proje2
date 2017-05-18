@@ -12,17 +12,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="29fbb64f-4069-4901-aad4-59e37e80ae92" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Proje2/framestreamerthread.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Proje2/framestreamerthread.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Proje2/stickmanlocation.cpp" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Proje2/stickmanlocation.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/Proje2" afterPath="$PROJECT_DIR$/../Proje2/Proje2" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/mainwindow.ui" afterPath="$PROJECT_DIR$/../Proje2/mainwindow.ui" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/Makefile" afterPath="$PROJECT_DIR$/../Proje2/Makefile" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/Proje2.pro" afterPath="$PROJECT_DIR$/../Proje2/Proje2.pro" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/Proje2.pro.user" afterPath="$PROJECT_DIR$/../Proje2/Proje2.pro.user" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/framestreamerthread.h" afterPath="$PROJECT_DIR$/../Proje2/framestreamerthread.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/mainwindow.cpp" afterPath="$PROJECT_DIR$/../Proje2/mainwindow.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/mainwindow.h" afterPath="$PROJECT_DIR$/../Proje2/mainwindow.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/moc_mainwindow.cpp" afterPath="$PROJECT_DIR$/../Proje2/moc_mainwindow.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Proje2/ui_mainwindow.h" afterPath="$PROJECT_DIR$/../Proje2/ui_mainwindow.h" />
     </list>
     <ignored path="FindingJoe.iws" />
     <ignored path=".idea/workspace.xml" />
